@@ -1,0 +1,7 @@
+{
+    "Arista": "arista_eos",
+    "Allied Telesyn": "brocade_nos",
+    "Brocade": "brocade_netiron",
+    "Cisco Systems": "cisco_ios"
+
+}

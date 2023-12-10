@@ -1,0 +1,33 @@
+{% extends 'account/base.html' %} 
+{% load crispy_forms_tags %} 
+{% load countries %}
+{% block content %}
+
+<div class="container dashboard-text">
+    <input
+        type="hidden"
+        id="dashboardweb"
+        data-dashboardweb ="yes"
+    />
+
+
+    <div class="row">
+      
+        <div class="col-xl-4 col-md-4 mb-4">
+            <div class="card border-left-success shadow h-100 py-2">
+                <div class="card-body">
+                    <div class="row no-gutters align-items-center">
+                        <div class="col mr-2">
+                            <div class="text-xs font-weight-bold text-success text-uppercase mb-1">
+                                <canvas id="policyChart" width="200" height="200"></canvas></div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+    
+    <iframe src="https://mcd.ixp.net.ng/dashboard_web/" title="description"></iframe>
+</div>
+
+{% endblock %}

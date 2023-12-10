@@ -1,0 +1,134 @@
+{% extends 'account/base.html' %} {% load static %} {% load crispy_forms_tags %}
+
+
+  {% block content %}
+
+  <div id="l2-test" class="container">
+ <h1 class="centered-heading">{{ name }} AS{{ asn }} at {{ pop }}</h1><br><br>
+  <table class="table table-hover asn-table" id="no-menu-tables">
+    <caption class="centered-heading">LAYER 1/2 TEST RESULT</caption>
+    <thead>
+      <tr>
+        <th scope="col">#</th>
+        <th scope="col">Interface</th>
+        <th scope="col">Output</th>
+        <th scope="col">Status</th>
+        
+      </tr>
+    </thead>
+    <tbody>
+      {% for key, val in results.items %}
+      <tr>
+        <td>
+          {{ forloop.counter }}
+        </td>
+        <td>
+            {{ key }}
+        </td>
+        <td>
+            {{ val.0|linebreaksbr }}
+        </td>
+        <td {% if not l2_status %}
+              class="passed"
+            {% else %}
+              class="failed"
+            {% endif %}>
+            
+          {{ val.1 }}
+      </td>
+       
+      </tr>
+      {% endfor %}
+    </tbody>
+  </table><br><br>
+  <button type="button" value="logs" class="btn btn-success get-logs">Get Logs</button>&nbsp; &nbsp;
+  {% if not l2_status %}
+  <button type="button" value="ipv4" class="btn btn-success adv-l3-test">L3 Tests (IPV4)</button> &nbsp; &nbsp;
+  {% if ipv6_enabled %}
+    <button type="button" value="ipv6" class="btn btn-success adv-l3-test">L3 Tests (IPV6)</button>&nbsp; &nbsp;
+    {% endif %}
+    {% endif %}
+    
+
+    <br><br>
+    <div class="row">
+      <div class="col-sm">
+        <div id="fetch-logs">
+          <img src="{% static 'half_moon.gif' %}" alt="load"><br><br>
+          <hp> <strong>fetching logs....</strong></p>
+        </div>
+        <div id="fetch-logs-result"></div>
+      </div>
+    </div>
+
+    <h1 class="centered-heading dynamic-heading-ipv4"></h1><br><br><br>
+    <div class="row">
+      <div class="col-sm">
+        <div id="get-l3-status-ipv4">
+          <img src="{% static 'half_moon.gif' %}" alt="load"><br><br>
+          <hp> <strong>pinging peer....</strong></p>
+        </div>
+        <div id="l3-test-result-ipv4"></div>
+      </div>
+    <div class="col-sm">
+      <div id="get-bgp-status-ipv4">
+        <img src="{% static 'half_moon.gif' %}" alt="load"><br><br>
+        <hp> <strong>getting bgp status....</strong></p>
+      </div>
+        <div id="bgp-status-ipv4"></div>
+    </div>
+  </div>
+  <br><br>
+  <div class="row">
+    <div class="col-sm">
+      <div id="get-prefixes-ipv4">
+        <img src="{% static 'half_moon.gif' %}" alt="load"><br><br>
+        <hp> <strong>getting prefixes received....</strong></p>
+      </div>
+      <div id="prefixes-ipv4"></div>
+    </div>
+  </div>
+
+  <h1 class="centered-heading dynamic-heading-ipv6"></h1><br><br><br>
+    <div class="row">
+      <div class="col-sm">
+        <div id="get-l3-status-ipv6">
+          <img src="{% static 'half_moon.gif' %}" alt="load"><br><br>
+          <hp> <strong>pinging peer....</strong></p>
+        </div>
+        <div id="l3-test-result-ipv6"></div>
+      </div>
+    <div class="col-sm">
+      <div id="get-bgp-status-ipv6">
+        <img src="{% static 'half_moon.gif' %}" alt="load"><br><br>
+        <hp> <strong>getting bgp status....</strong></p>
+      </div>
+        <div id="bgp-status-ipv6"></div>
+    </div>
+  </div>
+  <br><br>
+  <div class="row">
+    <div class="col-sm">
+      <div id="get-prefixes-ipv6">
+        <img src="{% static 'half_moon.gif' %}" alt="load"><br><br>
+        <hp> <strong>getting prefixes received....</strong></p>
+      </div>
+      <div id="prefixes-ipv6"></div>
+    </div>
+  </div>
+          
+
+  <input type="hidden" id="l2-status" l2-status={{ l2_status }}>
+  <input type="hidden" id="pp" pp={{ pp }}>
+  <input type="hidden" id="peer-id" peer-id="{{ peer_id }}">
+  <input type="hidden" id="peer" peer="{{ name }}">
+  <input type="hidden" id="l3-test-url" l3-test-url="{% url 'l3_basic_test' peer_id %}">
+  <input type="hidden" id="fetch-logs-url" fetch-logs-url="{% url 'fetch_logs' peer_id %}">
+  <input type="hidden" id="bgp-status-url" bgp-status-url="{% url 'bgp_status' %}">
+  <input type="hidden" id="get-prefixes-url" get-prefixes-url="{% url 'bgp_neighbor_received' %}">
+  <input type="hidden" id="infrastructure" infrastructure="{{ infrastructure }}">
+</div>
+  {% endblock %}
+
+  
+

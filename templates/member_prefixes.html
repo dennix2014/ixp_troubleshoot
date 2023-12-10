@@ -1,0 +1,72 @@
+{% extends 'account/base.html' %} 
+{% load static %} 
+{% load crispy_forms_tags %}
+
+{% block content %}
+
+<div class="container">
+  <div class="row">
+    <div class="col">
+      <table class="table table-hover asn-table"><caption>AS SEEN ON HE&nbsp;&nbsp;({{ member|length}})</caption>
+        <tbody>
+          {% for prefix in member %}
+            <tr>
+              <td>
+              {{ prefix }}
+              </td>
+            </tr>
+          {% endfor %}
+        </tbody>
+      </table>
+    </div>
+  <div class="col">
+    <table class="table table-hover asn-table"><caption>ADVERTISED LOCALLY &nbsp;&nbsp;({{ p|length }})</caption>
+      <tbody>
+        {% for prefix in member1 %}
+          <tr>
+            <td>
+              {{ prefix }}
+            </td>
+          </tr>
+        {% endfor %}
+      </tbody>
+    </table>
+    {% if member1.has_other_pages %}
+      <div class="pagination">
+        <span class="step-links">
+          {% if member1.has_previous %}
+            <a href="?page=1">&lt;&lt; &nbsp;</a>
+            <a href="?page={{ member1.previous_page_number }}">&lt; &nbsp;</a>
+          {% endif %}
+
+        <span class="current">
+            Page {{ member1.number }} of {{ member1.paginator.num_pages }}.
+        </span>
+
+        {% if member1.has_next %}
+            <a href="?page={{ member1.next_page_number }}">&gt; &nbsp;</a>
+            <a href="?page={{ member1.paginator.num_pages }}">&gt;&gt; &nbsp;</a>
+        {% endif %}
+    </span>
+</div>
+{% endif %}
+  </div>
+  <div class="col">
+  <table class="table table-hover asn-table"><caption>NOT ADVERTISED &nbsp;&nbsp;({{ difference|length}})</caption>
+    <tbody>
+      {% for prefix in difference %}
+      <tr>
+        <td>
+        {{ prefix }}
+        </td>
+      </tr>
+      {% endfor %}
+    </tbody>
+  </table>
+  </div>
+</div>
+</div>
+  {% endblock %}
+
+  
+

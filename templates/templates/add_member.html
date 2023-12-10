@@ -1,0 +1,49 @@
+{% extends 'account/base.html' %}
+{% load crispy_forms_tags %}
+
+
+{% block content %}
+
+{% if member_obj %}
+
+<h4 class="text-center heading1 animated bounceInDown">Edit {{ member_obj }}</h4>
+{% else %}
+<h4 class="text-center heading1 animated bounceInDown">Add Member</h4>
+{% endif %}
+<form method="POST">
+{% csrf_token %}
+
+  <div class="form-row justify-content-center">
+    <div class="form-group col-md-3 mr-4 align-center">
+        {{ form.member|as_crispy_field }}
+    </div>
+    <div class="form-group col-md-3 mr-4 align-center">
+      {{ form.asn|as_crispy_field }}
+  </div>    
+  </div>
+  <div class="form-row justify-content-center">
+    <div class="form-group col-md-3 mr-4 align-center">
+        {{ form.rs|as_crispy_field }}
+    </div> 
+    <div class="form-group col-md-3 mr-4 align-center">
+      {{ form.status|as_crispy_field }}
+  </div>    
+` </div>
+ 
+<div class="form-row justify-content-center">
+    {% if perms.members.add_member and member_obj %}
+<div class="form-group col-md-2 mr-4 align-center">
+            <a href="{% url 'delete_item' member_obj.id member_obj.slug model %}" class="btn btn-danger btn-block confirm-delete">Delete</a>
+</div>{% endif %}
+    <div class="form-group col-md-2 mr-4 align-center">
+        <button type="submit" class="btn btn-block submit-button">Save</button>  
+</div>
+</div>
+</form>
+<div class="form-row justify-content-center">
+    
+
+
+
+
+{% endblock %}

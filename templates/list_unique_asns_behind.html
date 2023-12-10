@@ -1,0 +1,78 @@
+{% extends 'account/base.html' %} {% load static %} {% load crispy_forms_tags %}
+
+{% block side %}
+<!-- <div class="container-fluid"> -->
+<div class="tty">
+  <h4 class="text-center">Filters</h4>
+  <form id="filter-form" method="get" action="{% url 'list_all_asns_behind' %}">
+    {{ filter.form | crispy }}
+    <div class="form-row">
+      <div class="form-group col-sm-1"></div>
+      <div class="form-group col-sm-4">
+        <button type="button" class="btn btn-outline-success reset-button">
+          clear
+        </button>
+      </div>
+      <div class="form-group col-sm-2"></div>
+      <div class="form-group col-sm-4">
+        <button
+          type="submit"
+          class="btn btn-outline-success"
+        >submit</button>
+      </div>
+    </div>
+  </form>
+</div>
+<!-- </div> -->
+
+{% endblock %}
+
+  {% block content %}
+  <div class="container">
+  <table class="table table-hover asn-table" id="indirectly-connected">
+    <thead>
+      <tr>
+        <th scope="col">#</th>
+        <th scope="col">ASN</th>
+        <th scope="col">ORGANIZATION</th>
+        <th scope="col">REGISTRY</th>
+        <th scope="col">COUNTRY</th>
+        <th scope="col">DATE ALLOCATED</th>
+        
+      </tr>
+    </thead>
+    <tbody>
+      {% for asn in asns %}
+      <tr>
+        <td>
+          {{forloop.counter }} 
+      </td>
+        <td>
+            {{ asn.asn }}
+        </td>
+        <td>
+          {% if asn.org_name %}
+          {{ asn.org_name }}
+          {% else %}
+          ---
+          {% endif %}
+        </td>
+        <td>
+          {{ asn.registry }}
+        </td>
+        <td>
+          {{ asn.country.name }}
+        </td>
+        <td  data-order="{{ asn.date_allocated|date:'Y-m-d' }}">
+          {{ asn.date_allocated }}
+        </td>
+        
+      </tr>
+      {% endfor %}
+    </tbody>
+  </table>
+</div>
+  {% endblock %}
+
+  
+

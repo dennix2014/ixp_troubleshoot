@@ -1,0 +1,70 @@
+{% extends 'account/base.html' %} {% load static %} {% load crispy_forms_tags %}
+
+
+  {% block content %}
+
+  <div class="container">
+  {% if is_noc %}
+  <div class="float-right">
+    <a href="{% url 'add_member' %}">
+      <span data-toggle="tooltip" data-placement="top" title="Add member" 
+      class="material-icons md-18 edit-note">add</span>
+    </a>
+  </div>
+  {% endif %}
+  <br><br>
+  <table class="table table-hover asn-table" id="members">
+    <thead>
+      <tr>
+        <th scope="col">#</th>
+        <th scope="col">Member</th>
+        <th scope="col">ASN</th>
+        <th scope="col">COUNTRY</th>
+        <th scope="col">REGISTRY</th>
+        <th scope="col">DATE ALLOCATED</th>
+        <th scope="col">PREFIXES</th>
+        <th scope="col">OTHER ASNS</th>
+
+      </tr>
+    </thead>
+    <tbody>
+      {% for asn in asns %}
+      <tr>
+        <td>
+          {{ forloop.counter }}
+        </td>
+        <td>
+            {{ asn.member }}
+        </td>
+        <td>
+          {{ asn.asn }}
+        </td>
+        <td>
+          {{ asn.country.name }}
+        </td>
+        <td>
+          {{ asn.registry|upper }}
+        </td>
+        <td  data-order="{{ asn.date_allocated|date:'Y-m-d' }}">
+          {{ asn.date_allocated }}
+        </td>
+        <td>
+          <a href="{% url 'member_prefixes' asn.id %}">
+            Prefixes...
+          </a>
+          <td>
+          <a href="{% url 'asns_behind' asn.id %}">
+            Other ASNs...
+          </a>
+        </td>
+        </td>
+      </tr>
+      {% endfor %}
+    </tbody>
+  </table>
+  
+</div>
+  {% endblock %}
+
+  
+

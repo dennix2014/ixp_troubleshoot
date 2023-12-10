@@ -1,0 +1,334 @@
+{% extends 'account/base.html' %} 
+{% load crispy_forms_tags %} 
+{% load countries %}
+{% block content %}
+<p class="alternative-dashboard"><a href="{% url 'asn_analysis' %}">Dashboard 1</a></p>
+
+{% if user.is_authenticated %}
+<div class="container dashboard-text">
+    <div class="row">
+        <div class="col-sm">
+            <table class=""><caption>ALL ASNS BY CONNECTION &emsp;&emsp;&emsp;&emsp;&emsp;&emsp;&emsp;&emsp;&emsp;&emsp;&emsp;&emsp;&emsp;&emsp;&emsp;&emsp;&emsp;&emsp;</caption>
+            <tr>
+                <th>ASNS</th>
+                <th>COUNT</th>
+            </tr>
+            <tr>
+                <td>DIRECTLY CONNECTED</td>
+                <td><a href="{% url 'list_asns' %}">{{ directly_connected_asns }}</a></td>
+            </tr>
+            <tr>
+                <td>INDIRECTLY CONNECTED</a></td>
+                <td><a href="{% url 'list_unique_asns_behind' %}">{{ indirectly_connected_asns }}</a></td>
+            </tr>
+            <tfoot>
+                <tr class="total">
+                    <td>TOTAL</a></td>
+                    <td>{{ total_no_of_asns }}</td>
+                </tr>
+            </tfoot>
+        </table>
+        </div>
+        <br><br>
+   
+        <div class="col-sm">
+            <table class=""><caption>DIRECTLY CONNECTED ASNS BY PEERING POLICY</caption>
+            <tr>
+                <th>PEERING POLICY</th>
+                <th>COUNT</th>
+            </tr>
+           
+            <tr>
+                <td>OPEN</td>
+                <td><a href="{% url 'list_asns' %}?notna=NA">{{ open_peering_policy }}</a></td>
+            </tr>
+            <tr>
+                <td>SELECTIVE</td>
+                <td><a href="{% url 'list_asns' %}?rs=NA">{{ selective_peering_policy }}</a></td>
+            </tr>
+            <tfoot>
+                <tr class="total">
+                    <td>TOTAL</td>
+                    <td>{{ directly_connected_asns }}</td>
+                </tr>
+            </tfoot>
+        </table>
+        </div>
+    </div>
+    <br><br>
+    <div class="row">
+        <div class="col-sm">
+            <table class=""><caption>DIRECTLY CONNECTED ASNS TOP 5 COUNTRIES</caption>
+            <tr>
+                <th>COUNTRY</th>
+                <th>COUNT</th>
+            </tr>
+            {% for item in top_5_countries_dc%}
+            <tr>
+                <td>{% get_country item.country as country %} {{ country.name|upper }}</td>
+                <td><a href="{% url 'list_asns' %}?country={{ item.country }}">{{ item.c }}</a></td>
+            </tr>
+            {% endfor %}
+            
+        </table>
+        </div>
+        <br><br>
+   
+        <div class="col-sm">
+            <table class=""><caption>INDIRECTLY CONNECTED ASNS TOP 5 COUNTRIES</caption>
+            <tr>
+                <th>COUNTRY</th>
+                <th>COUNT</th>
+            </tr>
+            {% for item in top_5_countries_idc %}
+            <tr>
+                <td>{% get_country item.country as country %} {{ country.name|upper }}</td>
+                <td><a href="{% url 'list_unique_asns_behind' %}?country={{ item.country }}">{{ item.c }}</a></td>
+            </tr>
+            {% endfor %}
+            
+        </table>
+        </div>
+    </div>
+    <br><br>
+    <div class="row">
+        <div class="col-sm">
+            <table class=""><caption>DIRECTLY CONNECTED ASNS TOP 5 REGISTRIES</caption>
+            <tr>
+                <th>REGISTRY</th>
+                <th>COUNT</th>
+            </tr>
+            {% for item in top_5_registries_dc %}
+            <tr>
+                <td>{{ item.registry|upper }}</td>
+                <td><a href="{% url 'list_asns' %}?registry={{ item.registry }}">{{ item.c }}</a></td>
+            </tr>
+            {% endfor %}
+            
+        </table>
+        </div>
+        <br><br>
+   
+        <div class="col-sm">
+            <table class=""><caption>INDIRECTLY CONNECTED ASNS TOP 5 REGISTRIES</caption>
+            <tr>
+                <th>REGISTRY</th>
+                <th>COUNT</th>
+            </tr>
+            {% for item in top_5_registries_idc %}
+            <tr>
+                <td>{{ item.registry|upper }}</td>
+                <td><a href="{% url 'list_unique_asns_behind' %}?registry={{ item.registry }}">{{ item.c }}</a></td>
+            </tr>
+            {% endfor %}
+            
+        </table>
+        </div>
+    </div>
+    <br><br>
+    <div class="row">
+        <div class="col-sm">
+            <table class=""><caption>TOP 10 MEMBERS WITH THE MOST INDIRECTLY CONNECTED ASNS</caption>
+            <tr>
+                <th>MEMBER</th>
+                <th>COUNT</th>
+            </tr>
+            {% for item in top_10_asns %}
+            <tr>
+                <td>{{ item.member__member }}</td>
+                <td><a href="{% url 'list_all_asns_behind' %}?member={{ item.member__member }}">{{ item.c }}</a></td>
+            </tr>
+            {% endfor %}
+        </table>
+        </div>
+        <br><br>
+    
+    <div class="col-sm">
+        <table class=""><caption>OTHER STATS &emsp;&emsp;&emsp;&emsp;&emsp;&emsp;&emsp;&emsp;&emsp;&emsp;&emsp;&emsp;&emsp;&emsp;&emsp;&emsp;&emsp;&emsp;</caption>
+        <tr>
+            <th>STATISTIC</th>
+            <th>COUNT</th>
+        </tr>
+      
+        <tr>
+            <td>ALL AFRINIC ASNS </td>
+            <td><a href="{% url 'list_all_afrinic_asns' %}">{{ afrinic }}</a></td>
+        </tr>
+        <tr>
+            <td>ALL ASNS IN NIGERIA </td>
+            <td><a href="{% url 'list_asns_in_naija' %}">{{ naija }}</a></td>
+        </tr>
+        <tr>
+            <td>ASNS IN NIGERIA NOT PEERING DIRECTLY</td>
+            <td><a href="{% url 'list_asns_not_dc' %}">{{ naija_not_dc }}</a></td>
+        </tr>
+        <tr>
+            <td>ASNS IN NIGERIA BUT NOT AVAILABLE AT IXPN</td>
+            <td><a href="{% url 'list_asns_not_in_ixpn' %}">{{ naija_not_at_ixpn }}</a></td>
+        </tr>
+       
+    </table>
+    </div>
+    <br><br>
+</div>
+</div>
+{% else %}
+<div class="container dashboard-text">
+    <div class="row">
+        <div class="col-sm">
+            <table class=""><caption>ALL ASNS BY CONNECTION &emsp;&emsp;&emsp;&emsp;&emsp;&emsp;&emsp;&emsp;&emsp;&emsp;&emsp;&emsp;&emsp;&emsp;&emsp;&emsp;&emsp;&emsp;</caption>
+            <tr>
+                <th>ASNS</th>
+                <th>COUNT</th>
+            </tr>
+            <tr>
+                <td>DIRECTLY CONNECTED</td>
+                <td>{{ directly_connected_asns }}</td>
+            </tr>
+            <tr>
+                <td>INDIRECTLY CONNECTED</a></td>
+                <td>{{ indirectly_connected_asns }}</td>
+            </tr>
+            <tfoot>
+                <tr class="total">
+                    <td>TOTAL</a></td>
+                    <td>{{ total_no_of_asns }}</td>
+                </tr>
+            </tfoot>
+        </table>
+        </div>
+        <br><br>
+   
+        <div class="col-sm">
+            <table class=""><caption>DIRECTLY CONNECTED ASNS BY PEERING POLICY</caption>
+            <tr>
+                <th>PEERING POLICY</th>
+                <th>COUNT</th>
+            </tr>
+           
+            <tr>
+                <td>OPEN</td>
+                <td>{{ open_peering_policy }}</td>
+            </tr>
+            <tr>
+                <td>SELECTIVE</td>
+                <td>{{ selective_peering_policy }}</td>
+            </tr>
+            <tfoot>
+                <tr class="total">
+                    <td>TOTAL</td>
+                    <td>{{ directly_connected_asns }}</td>
+                </tr>
+            </tfoot>
+        </table>
+        </div>
+    </div>
+    <br><br>
+    <div class="row">
+        <div class="col-sm">
+            <table class=""><caption>DIRECTLY CONNECTED ASNS TOP 5 COUNTRIES</caption>
+            <tr>
+                <th>COUNTRY</th>
+                <th>COUNT</th>
+            </tr>
+            {% for item in top_5_countries_dc%}
+            <tr>
+                <td>{% get_country item.country as country %} {{ country.name|upper }}</td>
+                <td>{{ item.c }}</td>
+            </tr>
+            {% endfor %}
+            
+        </table>
+        </div>
+        <br><br>
+   
+        <div class="col-sm">
+            <table class=""><caption>INDIRECTLY CONNECTED ASNS TOP 5 COUNTRIES</caption>
+            <tr>
+                <th>COUNTRY</th>
+                <th>COUNT</th>
+            </tr>
+            {% for item in top_5_countries_idc %}
+            <tr>
+                <td>{% get_country item.country as country %} {{ country.name|upper }}</td>
+                <td>{{ item.c }}</td>
+            </tr>
+            {% endfor %}
+            
+        </table>
+        </div>
+    </div>
+    <br><br>
+    <div class="row">
+        <div class="col-sm">
+            <table class=""><caption>DIRECTLY CONNECTED ASNS TOP 5 REGISTRIES</caption>
+            <tr>
+                <th>REGISTRY</th>
+                <th>COUNT</th>
+            </tr>
+            {% for item in top_5_registries_dc %}
+            <tr>
+                <td>{{ item.registry|upper }}</td>
+                <td>{{ item.c }}</td>
+            </tr>
+            {% endfor %}
+            
+        </table>
+        </div>
+        <br><br>
+   
+        <div class="col-sm">
+            <table class=""><caption>INDIRECTLY CONNECTED ASNS TOP 5 REGISTRIES</caption>
+            <tr>
+                <th>REGISTRY</th>
+                <th>COUNT</th>
+            </tr>
+            {% for item in top_5_registries_idc %}
+            <tr>
+                <td>{{ item.registry|upper }}</td>
+                <td>{{ item.c }}</td>
+            </tr>
+            {% endfor %}
+            
+        </table>
+        </div>
+    </div>
+    <br><br>
+    <div class="row">
+        
+        <br><br>
+    
+    <div class="col-sm">
+        <table class=""><caption>OTHER STATS &emsp;&emsp;&emsp;&emsp;&emsp;&emsp;&emsp;&emsp;&emsp;&emsp;&emsp;&emsp;&emsp;&emsp;&emsp;&emsp;&emsp;&emsp;</caption>
+        <tr>
+            <th>STATISTIC</th>
+            <th>COUNT</th>
+        </tr>
+      
+        <tr>
+            <td>ALL AFRINIC ASNS </td>
+            <td>{{ afrinic }}</td>
+        </tr>
+        <tr>
+            <td>ALL ASNS IN NIGERIA </td>
+            <td>{{ naija }}</td>
+        </tr>
+        <tr>
+            <td>ASNS IN NIGERIA NOT PEERING DIRECTLY</td>
+            <td>{{ naija_not_dc }}</td>
+        </tr>
+        <tr>
+            <td>ASNS IN NIGERIA BUT NOT AVAILABLE AT IXPN</td>
+            <td>{{ naija_not_at_ixpn }}</td>
+        </tr>
+       
+    </table>
+    
+    </div>
+    <br><br>
+    
+</div>
+
+</div>
+{% endif %}
+{% endblock %}

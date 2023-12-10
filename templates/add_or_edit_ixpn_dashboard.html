@@ -1,0 +1,48 @@
+{% extends 'account/base.html' %}
+{% load crispy_forms_tags %}
+
+
+    
+{% block content %}
+<div class="container">
+{% if dashboard_obj %}
+<h3>Edit {{ dashboard_obj }}</h3>
+{% else %}
+<h3>Add Dashboar Item</h3>
+{% endif %}
+<br>
+<br>
+
+    <form method="POST" enctype="multipart/form-data">
+        {% csrf_token %}
+        <div class="row justify-content-center">
+            <div class="col-8">
+                {{ form.display_name|as_crispy_field }}
+              </div>
+        </div>
+      
+        <div class="row justify-content-center">
+            <div class="col-4">
+                {{ form.group|as_crispy_field }}
+              </div>
+              <div class="col-4">
+                {{ form.url|as_crispy_field }}
+              </div>
+        </div>
+          <div class="row justify-content-center ">
+              <div class="col-8">
+                  <span class="border border-primary">
+                    {{ form.image|as_crispy_field }}
+                  </span> 
+                </div>
+        </div>
+        <div class="row justify-content-center">
+            <div class="col-8">
+                <button type="submit" class="btn btn-primary">Save</button>
+              </div>
+        </div>
+        </div>
+        </form>
+      </div>
+{% endblock %}
+

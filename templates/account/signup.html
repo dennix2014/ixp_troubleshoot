@@ -1,0 +1,101 @@
+{% extends 'account/base.html' %}
+{% block title%} Sign Up {% endblock %}
+{% load staticfiles %}
+{% load i18n widget_tweaks %}
+{% load account socialaccount %}
+
+{% block content %}
+<div class="container animated fadeInDown">
+    	<br>
+    	<br>
+    	<br>
+    	<br>
+    	<br>
+    	<h1 class="text-center">SIGN UP</h1>
+
+      	<br>
+      	<div class="row justify-content-md-center">
+		 <div class="socialaccount_ballot">
+		{% include "socialaccount/snippets/provider_list.html" with process="login" %}
+ 		</div>
+ 		</div>
+ 		<br>
+ 		<br>
+ 		<h3 class="text-center">---OR---</h3>
+ 		<br>
+ 		<br>
+     <form class="text-dark" id="signup_form" method="post" action="{% url 'account_signup' %}">
+
+    	{% csrf_token %} 
+    		<div class="row justify-content-sm-center">
+	    		<div class="col-sm-6">
+	    			{% if form.errors %}
+    
+                {% for field in form %}
+                    {% for error in field.errors %}
+                       
+                          <div class="alert alert-danger" role="alert">{{ error|escape }}</div>
+                       
+                      {% endfor %}
+                {% endfor %}
+              {% for error in form.non_field_errors %}
+                  <div class="alert alert-danger" role="alert">
+                    {{ error|escape }}
+                  </div>
+                {% endfor %}
+              {% endif %}
+	    		</div>
+	    	</div>
+	    	<br>
+    	<div class="row justify-content-sm-center">
+
+	    		<div class="col-sm-3">
+	      			<div class="form-group">
+	        			{{ form.first_name|attr:"class:form-control"}}
+	        			<label class="form-control-placeholder" for="{{ form.first_name.id_for_label }}">{{ form.first_name.label }}</label>
+	        			<br>
+	      			</div>
+	     		</div>
+	     		<div class="col-sm-3">
+	      			<div class="form-group">
+	        			{{ form.last_name|attr:"class:form-control"}}
+	        			<label class="form-control-placeholder" for="{{ form.last_name.id_for_label }}">{{ form.last_name.label }}</label>
+	      			</div>
+	     		</div>
+	  		</div>
+			<div class="row justify-content-sm-center">
+	    		<div class="col-sm-6">
+	      			<div class="form-group">
+	        			{{ form.email|attr:"class:form-control"}}
+	        			<label class="form-control-placeholder" for="{{ form.email.id_for_label }}">{{ form.email.label }}</label>
+	      			</div>
+	     		</div>
+	     	</div>
+	     	<br>
+	  		<div class="row justify-content-sm-center">
+	    		<div class="col-sm-3">
+	      			<div class="form-group">
+	        			{{ form.password1|attr:"class:form-control"}}
+	        			<label class="form-control-placeholder" for="{{ form.password1.id_for_label }}">{{ form.password1.label }}</label>
+	        			<br> 
+	      			</div>
+	     		</div>
+	     		<div class="col-sm-3">
+	      			<div class="form-group">
+	        			{{ form.password2|attr:"class:form-control"}}
+	        			<label class="form-control-placeholder" for="{{ form.password2.id_for_label }}">{{ form.password2.label }}</label>
+	      			</div>
+	     		</div>
+	  		</div>
+	  		<div class="row justify-content-sm-center">
+	    		<div class="col-sm-6">
+	      		<button type="submit" class="btn btn-primary btn-block">Sign Up!</button>
+	      		<p class="text-right links-sm"><a class="text-warning" href="{% url 'account_login' %}">{% trans "Sign in instead?" %}</a></p>
+	      		<br>
+	     		</div>
+	     	</div>
+		</form>
+
+		</div>
+
+{% endblock %}

@@ -1,0 +1,62 @@
+{% extends 'account/base.html' %} 
+{% load static %} 
+{% load crispy_forms_tags %}
+{% block content %}
+
+<div class="container">
+    {% if is_noc %}
+        <li class="nav-item dropdown">
+        <a 
+            class="nav-link active dropdown-toggle" 
+            href="" id="navbarDropdownMenuLink" 
+            data-toggle="dropdown" 
+            aria-haspopup="true" 
+            aria-expanded="false"
+        >
+            <span 
+                data-toggle="tooltip" 
+                data-placement="top" 
+                title="Add dashboard group" 
+                class="material-icons md-18 edit-note">
+                    add
+            </span>
+        </a>
+        <div class="dropdown-menu" aria-labelledby="navbarDropdownMenuLink">
+            <a 
+                class="dropdown-item" 
+                href="{% url 'add_dashboard_group' %}">
+                    add dashboard group
+            </a>
+            <a 
+                class="dropdown-item" 
+                href="{% url 'add_ixpn_dashboard' %}">
+                    add dashboard item
+            </a>
+        </div>
+        </li>
+    {% endif %}<br>
+    {%  for group, items in dashboard_items.items %}
+        {% if is_noc %}
+            <a href="{% url 'edit_dashboard_group' group.1 %}">
+                <h4>{{ group.0 }}</h4>
+            </a>
+        {% else %}
+            <h4>{{ group.0 }}</h4>
+        {% endif %}
+        <ul>
+            {% for item in items %}
+                {% if is_noc %}
+                    <a href="{% url 'edit_ixpn_dashboard'  item.id %}">
+                        <li>{{ item.display_name }}</li>
+                    </a>
+                {% else %}
+                    <li>{{ item.display_name }}</li>
+                {% endif %} 
+            {%  endfor %}
+        </ul><br>
+    {% endfor %}
+</div>
+  {% endblock %}
+
+  
+

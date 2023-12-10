@@ -1,0 +1,57 @@
+{% extends 'account/base.html' %} {% load static %} {% load crispy_forms_tags %}
+
+
+  {% block content %}
+  <div class="container">
+  <br><br><br>
+
+  <table class="table table-hover asn-table">
+    <thead>
+      <tr>
+        <th scope="col">#</th>
+        <th scope="col">ASN</th>
+        <th scope="col">OWNER</th>
+        <th scope="col">REGISTRY</th>
+        <th scope="col">COUNTRY</th>
+        <th scope="col">DATE ALLOCATED</th>
+        <th scope="col">ADVERTISED BY</th>
+      </tr>
+    </thead>
+    <tbody>
+      {% for asn in results %}
+      <tr>
+        <td>
+          {{ forloop.counter }}
+      </td>
+        <td>
+            {{ asn.asn }}
+        </td>
+        <td>
+          {% if asn.org_name %}
+          {{ asn.org_name }}
+          {% else %}
+          ---
+          {% endif %}
+        </td>
+        <td>
+          {{ asn.registry }}
+        </td>
+        <td>
+          {{ asn.country.name }}
+        </td>
+        <td>
+          {{ asn.date_allocated }}
+        </td>
+        <td>
+          
+          {{ asn.member }}
+        </td>
+      </tr>
+      {% endfor %}
+    </tbody>
+  </table>
+</div>
+  {% endblock %}
+
+  
+

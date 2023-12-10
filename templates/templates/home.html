@@ -1,0 +1,52 @@
+{% extends 'account/base.html' %} 
+{% load crispy_forms_tags %} 
+{% block content %}
+{% load static %}
+
+
+<div class="container">
+    {% if is_noc %}
+        <div class="float-right">
+            <a href="{% url 'add_ixpn_dashboard' %}">
+              <span data-toggle="tooltip" data-placement="top" title="Add member" 
+              class="material-icons md-18 edit-note">add</span>
+            </a>
+        </div>
+    {% endif %}
+        <br>
+<h1>IXPN DASHBOARD</h1><br><br>
+    {% comment %} {%  for project in projects  %}
+        {% if forloop.counter0|divisibleby:3 %} 
+        <div class="row text-center"> {%  endif %}
+          <div class="col-md-4">
+              <p>{{ project }}</p>
+          </div><!-- col-md-4 -->
+    {%  if forloop.counter|divisibleby:3 or forloop.last %}</div><!-- row closing --><hr>{%  endif %}
+    {%  endfor %} {% endcomment %}
+
+    {%  for group, items in ixpn_dashboard.items %}
+        <div class="dashboard-border">
+            <h3>{{ group }}</h3><br><br>
+            {% for item in items %}
+                {% if forloop.counter0|divisibleby:3 %} 
+                    <div class="row ixpn-dashboard"> 
+                {%  endif %}
+                <div class="col-md-4">
+                    <a 
+                        href="{{ item.url }}"
+                        target="_blank" rel="noopener noreferrer">
+                        <img class="dashboard-icon" 
+                        alt="{{ item.display_name }}"
+                        src="{{ item.image.url }}"
+                    >
+                    </a><p>{{ item.display_name}}</p>
+                </div>
+                {%  if forloop.counter|divisibleby:3 or forloop.last %}
+                    </div><hr>
+                {%  endif %}
+            {%  endfor %}
+        </div><br><br>
+    {% endfor %}
+
+ </div>
+{% endblock %}
