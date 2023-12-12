@@ -1235,6 +1235,10 @@ class MemberDetails(models.Model):
         return sum(self.speed)
 
     @property
+    def member_name_asn(self):
+        return f'{self.speed}-{self.asn}'
+
+    @property
     def total_speed(self):
         speed = sum(self.speed)
         if speed > 100:

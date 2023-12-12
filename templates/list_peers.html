@@ -28,12 +28,9 @@
         <td>
           {{ forloop.counter }}
         </td>
-        <td>{% if is_noc %}
+        <td>
           <a href="{% url 'l1_l2_test' peer.id %}">
             {{ peer.name }}
-            </a>{% else %}
-            {{ peer.name }}
-            {% endif %}
         </td>
         <td>
           {{ peer.asn }}

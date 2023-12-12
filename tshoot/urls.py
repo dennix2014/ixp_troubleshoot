@@ -12,5 +12,6 @@ urlpatterns = [
     path('l1_l2_test/<int:pk>', views.l1_l2_test, name='l1_l2_test'),
     path('fetch_logs/<int:pk>', views.fetch_logs, name='fetch_logs'),
     path('l3_basic_test/<int:pk>', views.l3_basic_test, name='l3_basic_test'),
+    path('l3_reachability/', views.l3_reachability, name='l3_reachability'),
     
 ]

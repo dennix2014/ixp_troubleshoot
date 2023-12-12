@@ -7,9 +7,20 @@ from ixp_troubleshoot.settings import BASE_DIR
 from ixp_troubleshoot.hosts import switches, rs_ipv4, rs_ipv6, rs
 import json
 import os
+from.forms import L3ReachabilityForm
 from zipfile import ZipFile, ZIP_DEFLATED
 import pathlib
-from core.utils import perform_l1_l2_test, perform_basic_l3_test, connect_to_route_server, get_peers, get_log
+from core.utils import (perform_l1_l2_test, 
+                        perform_basic_l3_test, 
+                        connect_to_route_server, 
+                        get_peers, 
+                        get_log,
+                        resolve_domain,
+                        is_valid_ipv4,
+                        connect_to_switch,
+                        ping_peer,
+                        check_bgp_status,
+                        check_prefix)
 
 
 error_msg = 'Correct errors indicated and try again'
@@ -407,3 +418,75 @@ def fetch_logs(request, pk):
     return JsonResponse(response)
 
 
+# def l3_reachability(request):
+#     if request.method == 'POST':
+#         form = L3ReachabilityForm(request.POST)
+#         if form.is_valid():
+#             member = form.cleaned_data['member']
+#             ip_address = form.cleaned_data['ip_address_or_hostname']
+
+#             if is_valid_ipv4(ip_address):
+#                 return render(request, 'successful.html', {'member': member, 'ip_address': ip_address})
+
+#             elif ip_address = resolve_domain(ip_address):
+#                 if ip_address:
+#                 return render(request, 'successful.html', {'member': member, 'ip_address': ip_address})
+#             else:
+#                 form.add_error('ip_address_or_hostname', 'Please enter a valid ip address or domain name')
+#                 return render(request, 'l3_reachability.html', {'form': form})
+                
+
+def l3_reachability(request):
+    if request.method == 'POST':
+        form = L3ReachabilityForm(request.POST)
+        if form.is_valid():
+            resolved_ip = None
+            member = form.cleaned_data['member']
+            ip_address = form.cleaned_data['ip_address_or_hostname']
+
+            if is_valid_ipv4(ip_address) or (resolved_ip := resolve_domain(ip_address)):
+                member_details = MemberDetails.objects.get(name=member)
+                peer_name = member_details.name
+                switch_ip = member_details.switch_ip
+                port = (member_details.connected_ports[0]).split('_')[0]
+                peer_ip = member_details.ipv4addr
+                peering_policy = member_details.peering_policy
+                print(peering_policy)
+
+                interface_status_check = connect_to_switch(port=port, switch=switch_ip)
+                if interface_status_check.get('link_status') == 'connected':
+                    peer_ip_check = ping_peer(peer_ip)
+                    
+                    if not int(peer_ip_check[1]):
+                        if peering_policy == 'open':
+                            peer_bgp_check = check_bgp_status(peer_name)
+
+                            if not int(peer_bgp_check[1]):
+                                check_ip_prefix = check_prefix(resolved_ip or ip_address)
+                                print(check_ip_prefix)
+
+
+
+                        
+                        
+                    return render(
+                                request, 
+                                'successful.html', {
+                                    'member': member, 
+                                    'ip_address': resolved_ip or ip_address
+                                })
+                else:
+                    return render(
+                                request, 
+                                'successful.html', {
+                                    'member': "it failed joor", 
+                                    'ip_address': resolved_ip or ip_address
+                                })
+
+            else:
+                form.add_error('ip_address_or_hostname', 'Please enter a valid IP address or domain name')
+            
+    else:
+        form = L3ReachabilityForm()
+
+    return render(request, 'l3_reachability.html', {'form': form})

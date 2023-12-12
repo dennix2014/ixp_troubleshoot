@@ -501,5 +501,8 @@ h3, h1{
     cursor:pointer
   }
 
+.help-block {
+    color: red;
+}
 
 

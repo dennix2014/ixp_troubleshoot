@@ -1,0 +1,39 @@
+{% extends 'account/base.html' %}
+{% load crispy_forms_tags %}
+
+
+    
+{% block content %}
+<div class="container">
+{% if dashboard_obj %}
+<h3>Edit {{ dashboard_obj }}</h3>
+{% else %}
+<h3>LAYER 3 REACHABILITY CHECK</h3>
+{% endif %}
+<br>
+<br>
+
+    <form method="POST" enctype="multipart/form-data">
+        {% csrf_token %}
+        <div class="row justify-content-center">
+            <div class="col-8">
+                {{ form.member|as_crispy_field }}
+              </div>
+        </div>
+
+        <div class="row justify-content-center">
+          <div class="col-8">
+              {{ form.ip_address_or_hostname|as_crispy_field }}
+            </div>
+      </div>
+      <br><br>
+        <div class="row justify-content-center">
+            <div class="col-8">
+                <button type="submit" class="btn btn-primary">GO!</button>
+              </div>
+        </div>
+        </div>
+        </form>
+      </div>
+{% endblock %}
+
