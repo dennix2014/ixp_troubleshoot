@@ -2,20 +2,15 @@ from django.http import JsonResponse, response
 from django.shortcuts import render, redirect, get_object_or_404
 from django.contrib.auth.decorators import login_required
 from django.contrib import messages
-from .models import Cust, Vlaninterface, Switch, MemberDetails, SwitchMain
+from .models import Switch, MemberDetails
 from ixp_troubleshoot.settings import BASE_DIR
 from ixp_troubleshoot.hosts import switches, rs_ipv4, rs_ipv6, rs
 import json
 import os
-from.forms import L3ReachabilityForm
+from.forms import L3ReachabilityForm, SwitchForm, MemberDetailsForm
 from zipfile import ZipFile, ZIP_DEFLATED
 import pathlib
-from core.utils import (perform_l1_l2_test, 
-                        perform_basic_l3_test, 
-                        connect_to_route_server, 
-                        get_peers, 
-                        get_log,
-                        resolve_domain,
+from core.utils import (resolve_domain,
                         is_valid_ipv4,
                         connect_to_switch,
                         ping_peer,
@@ -29,9 +24,12 @@ error_msg = 'Correct errors indicated and try again'
 def is_ajax(request):
     return request.META.get('HTTP_X_REQUESTED_WITH') == 'XMLHttpRequest'
 
+def home(request):
+    return redirect('account_login')
+
 @login_required
 def list_switches(request):
-    switches = SwitchMain.objects.all()
+    switches = Switch.objects.all()
     context = {'switches' : switches}
     return render(request, 'list_switches.html', context)
 
@@ -42,400 +40,9 @@ def list_peers(request):
     context = {'peers': peers}
     return render(request, 'list_peers.html', context)
 
-@login_required
-def update_peers(request):
-    peers = get_peers(rs_ipv4)
-    peers_v6 = get_peers(rs_ipv6)
-    vlan_interfaces = Vlaninterface.objects.using('ixpm').all()
 
-    MemberDetails.truncate()
-
-    for item in vlan_interfaces:
-
-        peer = MemberDetails()
-        ipv4addr = item.ipv4addressid.address
-        name = peers.get(ipv4addr)
-        if name:
-            peer.name = name
-        else:
-            peer.name = item.virtualinterfaceid.custid.name
-        
-        peer.ipv4addr = ipv4addr
-        ipv6addr = item.ipv6addressid.address
-        peer.ipv6addr = ipv6addr
-
-        if peers_v6.get(ipv6addr):
-            ipv6_enabled = True 
-        else:
-            ipv6_enabled = False 
-        
-        peer.ipv6_enabled = ipv6_enabled
-
-        ports = [f'{entry.switchportid.ifname}_{entry.switchportid.name}' \
-                for entry in item.virtualinterfaceid.physicalinterface_set.all()]
-
-        speed = [entry.speed \
-                for entry in item.virtualinterfaceid.physicalinterface_set.all()]
-
-        peer.connected_ports = ports
-        peer.speed = speed
-        switchid = item.virtualinterfaceid.physicalinterface_set.first().switchportid.switchid.id
-        switchid = get_object_or_404(SwitchMain, pk=switchid)
-        peer.switchid = switchid
-        peer.switch_ip = switchid.ipv4addr
-        peer.peering_policy = item.virtualinterfaceid.custid.peeringpolicy
-        peer.channelgroup = item.virtualinterfaceid.channelgroup
-        peer.asn = item.virtualinterfaceid.custid.autsys
-        peer.save()
-
-    return redirect('list_peers')
-
-
-@login_required
-def update_switches(request):
-    switches  = Switch.objects.using('ixpm').all()
-    peering_params = os.path.join(BASE_DIR, 'tshoot/peering_params')
-    
-
-    with open(f'{BASE_DIR}/core/switch_models.json') as s:
-        switch_models = json.load(s)
-
-    SwitchMain.truncate()
-    
-    for item in switches:
-        switch = SwitchMain()
-
-        switch.name = item.name
-        vendor = item.vendorid.name
-        if vendor:
-            switch.vendor = vendor
-        else:
-            switch.vendor = 'cisco_ios'
-        switch.ipv4addr = item.hostname
-        switch.infrastructure = item.infrastructure.name
-        switch.pop = item.cabinetid.locationid.name
-        switch.switchid = item.id
-        switch.netmiko_device_type = switch_models.get(vendor)
-
-        switch.save()
-
-
-    peers = get_peers(rs_ipv4)
-    peers_v6 = get_peers(rs_ipv6)
-    vlan_interfaces = Vlaninterface.objects.using('ixpm').all()
-
-    MemberDetails.truncate()
-
-    for item in vlan_interfaces:
-        print(item.virtualinterfaceid.custid.autsys)
-
-        peer = MemberDetails()
-        ipv4addr = item.ipv4addressid.address
-        name = peers.get(ipv4addr)
-        print(name)
-        if name:
-            peer.name = name
-        else:
-            peer.name = item.virtualinterfaceid.custid.name
-        
-        peer.ipv4addr = ipv4addr
-        ipv6addr = item.ipv6addressid.address
-        peer.ipv6addr = ipv6addr
-
-        if peers_v6.get(ipv6addr):
-            ipv6_enabled = True 
-        else:
-            ipv6_enabled = False 
-        
-        peer.ipv6_enabled = ipv6_enabled
-
-        ports = [f'{entry.switchportid.ifname}_{entry.switchportid.name}' \
-                for entry in item.virtualinterfaceid.physicalinterface_set.all()]
-
-        speed = [entry.speed \
-                for entry in item.virtualinterfaceid.physicalinterface_set.all()]
-
-        peer.connected_ports = ports
-        peer.speed = speed
-        print(speed)
-        print('=========================')
-        switchid = item.virtualinterfaceid.physicalinterface_set.first().switchportid.switchid.id
-        switchid = get_object_or_404(SwitchMain, pk=switchid)
-        peer.switchid = switchid
-        peer.switch_ip = switchid.ipv4addr
-        peer.peering_policy = item.virtualinterfaceid.custid.peeringpolicy
-        peer.channelgroup = item.virtualinterfaceid.channelgroup
-        peer.asn = item.virtualinterfaceid.custid.autsys
-        peer.save()
-
-
-    ### Creating or updating the json file that will be used by the subscription monitor script.
-
-    peers = MemberDetails.objects.all()
-    switches = SwitchMain.objects.all()
-    switchez = []
-    for switch in switches:
-        swi = {}
-        swi_ip = switch.ipv4addr
-        swi_name = switch.name
-        vendor = switch.vendor
-        pop = switch.get_pop_display()
-        swi['ip_add'] = swi_ip
-        swi['port_params'] = swi_name
-        swi['pop'] = pop
-        swi['vendor'] = vendor
-        switchez.append(swi)
-
-        peers_on_switch = peers.filter(switch_ip=swi_ip)
-
-
-        peerz = []
-        for peer in peers_on_switch:
-            det = {}
-            if peer.channelgroup:
-                det['port'] = f'Po{peer.channelgroup}'
-            else:
-                port = f'{(peer.interface_description)[0]}'
-                if 'Arista' in vendor:
-                    port = port.replace('Ethernet', 'Et')
-
-                det['port'] = port
-            
-            det['port_name'] = peer.name
-            det['subscription_GB'] = peer.total_speed
-            raw_speed = peer.raw_speed
-            det['subscription'] = raw_speed
-            det['threshold'] = int(raw_speed) * 0.8
-
-            peerz.append(det)
-
-        with open(f'{peering_params}/{swi_name}.json', 'w') as params:
-            json.dump(peerz, params, indent=2)
-
-    with open(f'{peering_params}/switches.json', 'w') as swi_params:
-            json.dump(switchez, swi_params, indent=2)
-
-    # zipped_file = './peering_params.zip'
-    # dir_to_be_zipped = './peering_params'
-
-    # folder = pathlib.Path(dir_to_be_zipped)
-
-    # with ZipFile(zipped_file, "w", ZIP_DEFLATED) as zip_obj:
-    #     for file in folder.iterdir():
-    #         zip_obj.write(file)
-
-    return redirect('list_switches')
-
-
-@login_required
-def l1_l2_test(request, pk):
-    peer = get_object_or_404(MemberDetails, pk=pk)
-    peer_id = pk
-    name = peer.name
-    asn = peer.asn
-    pop = peer.switchid.get_pop_display()
-    infrastructure = peer.switchid.infrastructure
-    ports = peer.connected_ports
-    switch = peer.switchid.ipv4addr
-    netmiko_device_type = switches.get(switch)
-    ssh_port = switches.get(switch)
-    channelgroup = peer.channelgroup
-    peering_policy = peer.peering_policy
-    ipv6_enabled = peer.ipv6_enabled
-
-    if netmiko_device_type:
-
-
-        results = perform_l1_l2_test(
-                    switch=switch,
-                    ports=ports,
-                    netmiko_device_type=netmiko_device_type[0],
-                    channelgroup=channelgroup,
-                    ssh_port=ssh_port[1]
-                )
-
-        l2_status = results.get('l2_status')
-        del results['l2_status']
-    
-    else:
-        ports = [port.split('_')[1] for port in ports]
-        ports = ' '.join(ports)
-        results = {
-            f'{ports}': ['switch not supported', 'FAILED']
-            
-        }
-
-        l2_status = 1
-
-    context = {
-        'results': results, 
-        'name': name, 
-        'asn':asn, 
-        'pop':pop, 
-        'peer_id': peer_id,
-        'infrastructure': infrastructure,
-        'l2_status': l2_status,
-        'pp': peering_policy,
-        'ipv6_enabled': ipv6_enabled
-        }
-
-    return render(request, 'l1_l2.html', context)
-
-
-@login_required
-def l3_basic_test(request, pk):
-    peer = get_object_or_404(MemberDetails, pk=pk)
-    ipv4addr = peer.ipv4addr
-    ipv6addr = peer.ipv6addr
-    pop = peer.switchid.get_pop_display()
-    infrastructure = peer.switchid.infrastructure
-    ip_protocol = request.GET['ipProtocol']
-    if ip_protocol == 'ipv4':
-        ip_address = ipv4addr
-    else:
-        ip_address = ipv6addr
-
-    server = (rs.get(ip_protocol)).get(infrastructure)
-    if server:
-        server = server[0]
-        output = perform_basic_l3_test(
-            server,
-            ip_address
-                )
-
-        response = {
-            'output': output[0], 
-            'l3_status': output[1],
-            'pop':pop, 
-            'ip_protocol': ip_protocol
-        }
-
-        return JsonResponse(response)
-    else:
-        response = {
-            'output': f'No Route server at {pop}',
-            'l3_status': 1,
-            'pop': pop,
-            'ip_protocol': ip_protocol
-
-        }
-
-        return JsonResponse(response)
-
-@login_required
-def bgp_neighbor_received(request):
-    if request.method == 'GET' and is_ajax(request):
-        peer = request.GET['peerId']
-        pop = (get_object_or_404(MemberDetails, pk=peer)).switchid.get_pop_display()
-        infrastructure = request.GET['infrastructure']
-        bgp_peer = request.GET['bgpPeer']
-        ip_protocol = request.GET['ipProtocol']
-
-        server = (rs.get(ip_protocol)).get(infrastructure)[0]
-        command = 'shpref'
-
-        
-
-        if "HURRICANE" in bgp_peer:
-            result = 'Route recieved too long'
-            is_table = 0
-            response = {
-                'result':result,
-            }
-            return JsonResponse(response)
-        else:       
-            command_to_run = f'{command} {bgp_peer}'
-            result = connect_to_route_server(server, command_to_run)
                 
-            response = {
-                'result':result[0], 
-                'table_header': result[1],
-                'table_id': result[2],
-                'ip_col': result[3],
-                'bgp_peer': bgp_peer,
-                'infrastructure': infrastructure,
-                'pop': pop,
-                'ip_protocol':ip_protocol
-            }
-            return JsonResponse(response)
-
-
 @login_required
-def bgp_status(request):
-    if request.method == 'GET' and is_ajax(request):
-
-        infrastructure = request.GET['infrastructure']
-        bgp_peer = request.GET['bgpPeer']
-        ip_protocol = request.GET['ipProtocol']
-
-        server = (rs.get(ip_protocol)).get(infrastructure)[0]
-        command = 'shprodetail'
-
-        command_to_run = f'{command} {bgp_peer}'
-        result = connect_to_route_server(server, command_to_run)
-
-        response = {
-            'result':result[0],
-            'bgp_status': result[1]
-        }
-        return JsonResponse(response)
-
-
-@login_required
-def fetch_logs(request, pk):
-    peer = get_object_or_404(MemberDetails, pk=pk)
-    switch = peer.switchid.ipv4addr
-    netmiko_device_type = switches.get(switch)
-    ssh_port = switches.get(switch)
-    channelgroup = peer.channelgroup
-    ports = peer.connected_ports
-    table_header = ['interface', 'log']
-    if netmiko_device_type:
-
-        results = get_log(
-                    switch=switch,
-                    ports=ports,
-                    netmiko_device_type=netmiko_device_type[0],
-                    channelgroup=channelgroup,
-                    ssh_port=ssh_port[1]
-                )
-    else:
-        
-        ports = [port.split('_')[1] for port in ports]
-        ports = ' '.join(ports)
-        results = [
-            {
-                'log': 'switch not supported',
-                'interface': f'{ports}'
-            }
-        ]
-
-    response = {
-        'results': results, 
-        'table_header': table_header
-        }
-
-    return JsonResponse(response)
-
-
-# def l3_reachability(request):
-#     if request.method == 'POST':
-#         form = L3ReachabilityForm(request.POST)
-#         if form.is_valid():
-#             member = form.cleaned_data['member']
-#             ip_address = form.cleaned_data['ip_address_or_hostname']
-
-#             if is_valid_ipv4(ip_address):
-#                 return render(request, 'successful.html', {'member': member, 'ip_address': ip_address})
-
-#             elif ip_address = resolve_domain(ip_address):
-#                 if ip_address:
-#                 return render(request, 'successful.html', {'member': member, 'ip_address': ip_address})
-#             else:
-#                 form.add_error('ip_address_or_hostname', 'Please enter a valid ip address or domain name')
-#                 return render(request, 'l3_reachability.html', {'form': form})
-                
-
 def l3_reachability(request):
     if request.method == 'POST':
         form = L3ReachabilityForm(request.POST)
@@ -443,44 +50,182 @@ def l3_reachability(request):
             resolved_ip = None
             member = form.cleaned_data['member']
             ip_address = form.cleaned_data['ip_address_or_hostname']
+            raw_ip_address = ip_address
+            check_if_ipv4 = is_valid_ipv4(ip_address)
+            check_if_hostname = resolve_domain(ip_address)
 
-            if is_valid_ipv4(ip_address) or (resolved_ip := resolve_domain(ip_address)):
+            if check_if_ipv4:
+                is_received_entry_ipv4 = True
+            elif check_if_hostname:
+                is_received_entry_ipv4 = False
+
+            if check_if_ipv4 or (resolved_ip := check_if_hostname):
                 member_details = MemberDetails.objects.get(name=member)
                 peer_name = member_details.name
-                switch_ip = member_details.switch_ip
-                port = (member_details.connected_ports[0]).split('_')[0]
+                switch_ip = member_details.switch.ipv4addr
+
+                port = (member_details.connected_ports)
                 peer_ip = member_details.ipv4addr
                 peering_policy = member_details.peering_policy
-                print(peering_policy)
+                
 
                 interface_status_check = connect_to_switch(port=port, switch=switch_ip)
                 if interface_status_check.get('link_status') == 'connected':
-                    peer_ip_check = ping_peer(peer_ip)
+                    port_status = f'Interface for {peer_name} is connected!'
+                    peer_ping_check = ping_peer(peer_ip)
                     
-                    if not int(peer_ip_check[1]):
+                    if not int(peer_ping_check[1]):
+                        peer_ping_status = f"{peer_name}'s peer ip - {peer_ip} is reachable!"
                         if peering_policy == 'open':
                             peer_bgp_check = check_bgp_status(peer_name)
 
                             if not int(peer_bgp_check[1]):
+                                peer_bgp_check_status = f"{peer_name}'s BGP session is Established!"
                                 check_ip_prefix = check_prefix(resolved_ip or ip_address)
-                                print(check_ip_prefix)
+                                
+                                if check_ip_prefix:
+                                    check_ip_prefix_status = f"{raw_ip_address} is available at the IX!"
+                                    other_peer_ip = check_ip_prefix.get('next_hop')
+                                    other_peer_ping_check = ping_peer(other_peer_ip)
+                                    print(check_ip_prefix)
 
+                                    if not int(other_peer_ping_check[1]):
+                                        other_peer_name = check_ip_prefix.get('peer_name')
+                                        other_peer_ip = check_ip_prefix.get('next_hop')
+                                        other_peer_ping_check_status = f'{other_peer_name} peer ip - {other_peer_ip} is reachable!'
+                                        service_ping_check = ping_peer(resolved_ip or ip_address)
 
-
+                                        if not int(service_ping_check[1]):
+                                            service_ping_check_status = f'{raw_ip_address} is reachable!'
                         
-                        
-                    return render(
+                                            return render(
+                                                        request, 
+                                                        'report.html', {
+                                                            'member': member, 
+                                                            'ip_address': raw_ip_address,
+                                                            'interface_status': interface_status_check,
+                                                            'peer_ping_check': peer_ping_check,
+                                                            'peer_bgp_check': peer_bgp_check,
+                                                            'other_peer_ping_check': other_peer_ping_check[0],
+                                                            'service_ping_check': service_ping_check[0],
+                                                            'port_status': port_status,
+                                                            'service_ping_check_status': service_ping_check_status,
+                                                            'other_peer_ping_check_status': other_peer_ping_check_status,
+                                                            'check_ip_prefix_status': check_ip_prefix_status,
+                                                            'peer_bgp_check_status': peer_bgp_check_status,
+                                                            'peer_ping_status': peer_ping_status
+
+                                                        })
+
+                                        else:
+                                            service_ping_check_status = f'{raw_ip_address} is not reachable!'
+                                            return render(
+                                            request, 
+                                            'report.html', {
+                                                'member': member, 
+                                                'ip_address': raw_ip_address,
+                                                'interface_status': interface_status_check,
+                                                'peer_ping_check': peer_ping_check,
+                                                'peer_bgp_check': peer_bgp_check,
+                                                'other_peer_ping_check': other_peer_ping_check[0],
+                                                'service_ping_check': service_ping_check[0],
+                                                'service_ping_check_status': service_ping_check_status,
+                                                'other_peer_ping_check_status': other_peer_ping_check_status,
+                                                'check_ip_prefix_status': check_ip_prefix_status,
+                                                'peer_bgp_check_status': peer_bgp_check_status,
+                                                'port_status': port_status,
+                                                'peer_ping_status': peer_ping_status
+                                            })
+
+                                    else:
+                                        other_peer_ping_check_status = f"{other_peer_name}'s peer ip - {other_peer_ip} is not reachable!"
+                                        return render(
+                                            request, 
+                                            'report.html', {
+                                                'member': member, 
+                                                'ip_address': raw_ip_address,
+                                                'interface_status': interface_status_check,
+                                                'peer_ping_check': peer_ping_check,
+                                                'peer_bgp_check': peer_bgp_check,
+                                                'other_peer_ping_check': other_peer_ping_check[0],
+                                                'other_peer_ping_check_status': other_peer_ping_check_status,
+                                                'check_ip_prefix_status': check_ip_prefix_status,
+                                                'peer_bgp_check_status': peer_bgp_check_status,
+                                                'port_status': port_status,
+                                                'peer_ping_status': peer_ping_status
+                                            })
+
+                                else:
+                                    check_ip_prefix_status = f'{raw_ip_address} not available at the IX'
+                                    return render(
+                                        request, 
+                                        'report.html', {
+                                        'member': member, 
+                                        'ip_address': raw_ip_address,
+                                        'interface_status': interface_status_check,
+                                        'peer_ping_check': peer_ping_check,
+                                        'peer_bgp_check': peer_bgp_check,
+                                        'check_ip_prefix_status': check_ip_prefix_status,
+                                        'check_ip_prefix': f'{raw_ip_address} not available at the IX',
+                                        'peer_bgp_check_status': peer_bgp_check_status,
+                                        'port_status': port_status,
+                                        'peer_ping_status': peer_ping_status
+                                    })
+                                        
+
+                            else:
+                                peer_bgp_check_status = f"{peer_name}'s BGP session is not Established!"
+                                return render(
                                 request, 
-                                'successful.html', {
+                                'report.html', {
                                     'member': member, 
-                                    'ip_address': resolved_ip or ip_address
-                                })
+                                    'ip_address': raw_ip_address,
+                                    'interface_status': interface_status_check,
+                                    'peer_ping_check': peer_ping_check,
+                                    'peer_bgp_check': peer_bgp_check,
+                                    'peer_bgp_check_status': peer_bgp_check_status,
+                                    'port_status': port_status,
+                                    'peer_ping_status': peer_ping_status
+
+
+                                }) 
+                        
+
+                        else:
+                            return render(
+                                request, 
+                                'report.html', {
+                                    'member': member, 
+                                    'ip_address': raw_ip_address,
+                                    'interface_status': interface_status_check,
+                                    'peer_ping_check': peer_ping_check,
+                                    'peering_policy_message': f"{member}'s peering policy is not open, therefore there is no bgp peer on the route server",
+                                    'port_status': port_status,
+                                    'peer_ping_status': peer_ping_status
+                                })  
+                            
+                    else:
+                        peer_ping_status = f"{peer_name}'s peer ip - {peer_ip} is not reachable!"
+                        return render(
+                                request, 
+                                'report.html', {
+                                    'member': member, 
+                                    'ip_address': raw_ip_address,
+                                    'interface_status': interface_status_check,
+                                    'peer_ping_check': peer_ping_check,
+                                    'port_status': port_status,
+                                    'peer_ping_status': peer_ping_status
+                                })                
+                
                 else:
+                    port_status = f'Interface for {peer_name} is not connected!'
                     return render(
                                 request, 
-                                'successful.html', {
-                                    'member': "it failed joor", 
-                                    'ip_address': resolved_ip or ip_address
+                                'report.html', {
+                                    'member': member, 
+                                    'ip_address': raw_ip_address,
+                                    'interface_status': interface_status_check,
+                                    'port_status': port_status
                                 })
 
             else:
@@ -490,3 +235,45 @@ def l3_reachability(request):
         form = L3ReachabilityForm()
 
     return render(request, 'l3_reachability.html', {'form': form})
+
+@login_required
+def add_or_edit_switch(request, pk=None):
+   
+    switch_obj = get_object_or_404(Switch, pk=pk) if pk else None
+    form = SwitchForm(request.POST, request.FILES, instance=switch_obj)
+    if request.method == 'POST':
+        if form.is_valid():
+            form.save()
+            return redirect('list_peers')
+        else:
+            messages.error(request, error_msg)
+            return render(request, 'add_or_edit_switch.html', {'form': form})
+    elif request.method == 'GET':
+        form = SwitchForm(instance=switch_obj)
+        context = {
+           'form': form, 
+           'switch_obj': switch_obj,
+           }
+
+    return render(request, 'add_or_edit_switch.html', context)
+
+@login_required
+def add_or_edit_member(request, pk=None):
+   
+    member_obj = get_object_or_404(MemberDetails, pk=pk) if pk else None
+    form = MemberDetailsForm(request.POST, request.FILES, instance=member_obj)
+    if request.method == 'POST':
+        if form.is_valid():
+            form.save()
+            return redirect('list_peers')
+        else:
+            messages.error(request, error_msg)
+            return render(request, 'add_or_edit_member.html', {'form': form})
+    elif request.method == 'GET':
+        form = MemberDetailsForm(instance=member_obj)
+        context = {
+           'form': form, 
+           'member_obj': member_obj,
+           }
+
+    return render(request, 'add_or_edit_member.html', context)

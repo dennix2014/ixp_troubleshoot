@@ -10,9 +10,8 @@
       <tr>
         <th scope="col">#</th>
         <th scope="col">Name</th>
-        <th scope="col">Vendor</th>
-        <th scope="col">POP</th>
-        <th scope="col">Infrastrucuture</th>
+        <th scope="col">IP address</th>
+        <th scope="col">OEM</th>
       </tr>
     </thead>
     <tbody>
@@ -25,14 +24,11 @@
             {{ switch.name }}
         </td>
         <td>
-          {{ switch.vendor }}
+          {{ switch.ipv4addr }}
         </td>
         <td>
-          {{ switch.pop }}
-        </td>
-        <td>
-          {{ switch.infrastructure }}
-        </td>     
+          {{ switch.oem }}
+        </td>   
       </tr>
       {% endfor %}
     </tbody>

@@ -1,0 +1,57 @@
+{% extends 'account/base.html' %}
+{% load crispy_forms_tags %}
+
+
+    
+{% block content %}
+<div class="container">
+<br>
+<h4>Add Member</h4>
+<br>
+<form method="POST">
+  {% csrf_token %}
+  <div class="row">
+      <div class="col-6">
+          {{ form.name|as_crispy_field }}
+        </div>
+  </div>
+  <div class="row">
+      <div class="col-6">
+          {{ form.ipv4addr|as_crispy_field }}
+        </div>
+  </div>
+  <div class="row">
+    <div class="col-6">
+        {{ form.asn|as_crispy_field }}
+      </div>
+</div>
+<div class="row">
+  <div class="col-6">
+      {{ form.connected_ports|as_crispy_field }}
+    </div>
+</div>
+<div class="row">
+  <div class="col-6">
+      {{ form.switch|as_crispy_field }}
+    </div>
+</div>
+<div class="row">
+  <div class="col-6">
+      {{ form.peering_policy|as_crispy_field }}
+    </div>
+</div>
+<div class="row">
+  <div class="col-6">
+      {{ form.speed|as_crispy_field }}
+    </div>
+</div><br>
+  <div class="row">
+      <div class="col-6">
+          <button type="submit" class="btn btn-primary">Save</button>
+        </div>
+  </div>
+  </div>
+  </form>
+      </div>
+{% endblock %}
+

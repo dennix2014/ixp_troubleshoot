@@ -12,14 +12,11 @@
         <th scope="col">Peer</th>
         <th scope="col">ASN</th>
         <th scope="col">Peer IP</th>
-        <th scope="col">Peer IPV6</th>
         <th scope="col">Ports</th>
-        <th scope="col">Port Capacity</th>
-        <th scope="col">Port Capacity Hidden</th>
+        <th scope="col">Bandwidth</th>
         <th scope="col">Peering Policy</th>
-        <th scope="col">Channel Group</th>
-        <th scope="col">POP</th>
-        <th scope="col">IPV6 Enabled</th>
+
+ 
       </tr>
     </thead>
     <tbody>
@@ -29,7 +26,7 @@
           {{ forloop.counter }}
         </td>
         <td>
-          <a href="{% url 'l1_l2_test' peer.id %}">
+      
             {{ peer.name }}
         </td>
         <td>
@@ -39,30 +36,17 @@
           {{ peer.ipv4addr }}
         </td>
         <td>
-            {{ peer.ipv6addr }}
-        </td>
-        <td>{% for port in peer.interface_description %}
-          {{ port }} <br>
-          {% endfor %}
+          {{ peer.connected_ports }} 
         </td>
         <td>
-          {{ peer.total_speed }}
-        </td>
-        <td>
-          {{ peer.raw_speed }}
+          {{ peer.speed }}
         </td>
         <td>
           {{ peer.peering_policy }}
         </td>
         <td>
-            {{ peer.channelgroup }}
+            {{ peer.switch }}
         </td>
-        <td>
-            {{ peer.switchid.get_pop_display }}
-        </td>
-        <td>
-          {{ peer.ipv6_enabled }}
-      </td>
       </tr>
       {% endfor %}
     </tbody>

@@ -21,13 +21,15 @@ import re
 dotenv_path = Path('/home/noc-admin/.cred.env')
 load_dotenv(dotenv_path=dotenv_path)
 
-user = os.getenv('RADUSR')
-passw = os.getenv('RADPASS')
-ssh_user =  'lg'
-ssh_port = 4010
+
+user = os.getenv('lab_user')
+passw = os.getenv('lab_pass')
+ssh_user = 'tshoot'
+ssh_pass = "tshoot"
+ssh_port = 22
 key_file = '/home/noc-admin/.ssh/id_rsa.pub'
 session_log = '/home/noc-admin/netmiko.log'
-primary_rs = '10.175.0.233'
+primary_rs = '192.168.100.100'
 
 
 def is_engineer(user):
@@ -226,7 +228,7 @@ def connect_to_switch(**kwargs):
         'host': kwargs.get('switch'),
         'username': user,
         'password': passw,
-        'port': 4010,
+        'port': 22,
         'fast_cli': True
     }
 
@@ -249,10 +251,10 @@ def connect_to_switch(**kwargs):
 
     parsed_response['interface'] = port
     parsed_response['bandwidth'] = bandwidth
-    parsed_response['interface_ype'] = interface_type
+    parsed_response['interface_type'] = interface_type
     parsed_response['description'] = description
     parsed_response['link_status'] = link_status
-
+  
     return parsed_response
 
 def ping_peer(peer_ip):
@@ -261,8 +263,7 @@ def ping_peer(peer_ip):
         'device_type': 'linux',
         'host': primary_rs,
         'username': ssh_user,
-        'use_keys': True,
-        'key_file': key_file,
+        'password': ssh_pass,
         'port': ssh_port,
         'session_log': session_log,
         'fast_cli': True
@@ -279,14 +280,13 @@ def check_bgp_status(peer):
         'device_type': 'linux',
         'host': primary_rs,
         'username': ssh_user,
-        'use_keys': True,
-        'key_file': key_file,
+        'password': ssh_pass,
         'port': ssh_port,
         'session_log': session_log,
         'fast_cli': True
     }
 
-    new_con = ConnectHandler(**ssh_params)
+    
     net_connect = ConnectHandler(**ssh_params)
     output = net_connect.send_command(f'shprodetail {peer}', delay_factor=2)
     output = ast.literal_eval(output)
@@ -314,8 +314,7 @@ def check_prefix(ip_prefix):
         'device_type': 'linux',
         'host': primary_rs,
         'username': ssh_user,
-        'use_keys': True,
-        'key_file': key_file,
+        'password': ssh_pass,
         'port': ssh_port,
         'session_log': session_log,
         'fast_cli': True
@@ -333,7 +332,8 @@ def check_prefix(ip_prefix):
     med_pattern = re.compile(r'BGP.med: (\d+)')
     local_pref_pattern = re.compile(r'BGP.local_pref: (\d+)')
     community_pattern = re.compile(r'BGP.community: \((\d+),(\d+)\)')
-    peer_name_pattern = re.compile(r'\[([^\]]+?)\s+\d{4}-\d{2}-\d{2}\]')
+    peer_name_pattern = re.compile(r'\[([^\]]+?)\s+\d{2}:\d{2}:\d{2}\]')
+    #peer_name_pattern = re.compile(r'\[([^\]]+?)\s+\d{4}-\d{2}-\d{2}\]')
 
     # Initialize an empty dictionary to store the extracted information
     output_dict = {}

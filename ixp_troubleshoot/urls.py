@@ -18,10 +18,12 @@ from django.urls import path, include
 from django.conf import settings
 from django.conf.urls.static import static
 from ixp_troubleshoot.local_settings import admin_url
+from tshoot.views import home
 
 urlpatterns = [
+    path('', home, name='home'),
     path(admin_url, admin.site.urls),
-    path('', include('tshoot.urls')),
+    path('tshoot/', include('tshoot.urls')),
     path('accounts/', include('allauth.urls')),
     
 ]+ static(settings.STATIC_URL, document_root=settings.STATIC_ROOT)

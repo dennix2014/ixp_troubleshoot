@@ -14,8 +14,7 @@
 		<link rel="stylesheet" href="https://stackpath.bootstrapcdn.com/bootstrap/4.4.1/css/bootstrap.min.css" integrity="sha384-Vkoo8x4CGsO3+Hhxv8T/Q5PaXtkKtu6ug5TOeNV6gBiFeWPGFN9MuhOf23Q9Ifjh" crossorigin="anonymous">
     <link rel="stylesheet" href="https://cdn.datatables.net/1.12.1/css/jquery.dataTables.min.css" />
     <link rel="stylesheet" href="{% static 'myStyle.css' %}" />
-		<link rel="icon" type="image/x-icon" href="{% static 'favicon.ico' %}" />
-        <link rel="shortcut icon" type="image/x-icon" href="{% static 'favicon.ico' %}" />
+	
         
         <link
         rel="stylesheet"
@@ -33,9 +32,8 @@
   
         <nav class="navbar navbar-expand-lg navbar-dark" style="background-color: #859F41;">
             <div class="container-fluid">
-            {% if user.is_authenticated %}
-            <a class="navbar-brand" href="#">MENU 01</a>
-            <a class="navbar-brand" href="#">MENU 02</a>
+
+            <a class="navbar-brand" href="{% url 'l3_reachability' %}">L3 Reachability Check</a>
             {% if filter %}
             <div class="hidden-filter-icon">
                 <button class="btn submit-button" type="button">&nbsp;<i class="fa fa-filter filter-icon fa-1x">filter</i>&nbsp;&nbsp;</button>
@@ -50,11 +48,13 @@
               <ul class="navbar-nav mr-auto"> 
                 
                   {% comment %} <li class="nav-item">
-                    <a class="nav-link active" href="{% url 'home' %}">
+                
                       Home
                     </a>
                   </li> {% endcomment %}
-  
+   
+
+                 
               </ul>
               
               <ul class="navbar-nav ml-auto">
@@ -63,12 +63,13 @@
 
                   <li class="nav-item dropdown">
                     <a class="nav-link active dropdown-toggle" href="" id="navbarDropdownMenuLink" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
-                      Tshoot Tool
+                      Add Entries
                     </a>
                     <div class="dropdown-menu" aria-labelledby="navbarDropdownMenuLink">
-                      <a class="dropdown-item" href="{% url 'list_peers' %}">List Peers</a>
-                      <a class="dropdown-item" href="{% url 'list_switches' %}">List Switches</a>
-                      <a class="dropdown-item" href="{% url 'update_switches' %}">Update Params</a>
+                      <a class="dropdown-item" href="{% url 'add_switch' %}">Add Switch</a>
+                      <a class="dropdown-item" href="{% url 'add_member' %}">Add Member</a>
+
+                  
             
                     </div>
                   </li>
@@ -77,15 +78,12 @@
 
                   <li class="nav-item dropdown">
                     <a class="nav-link active dropdown-toggle" href="" id="navbarDropdownMenuLink" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
-                      MENU 03
+                      List Entries
                     </a>
                     <div class="dropdown-menu" aria-labelledby="navbarDropdownMenuLink">
-                      <a class="dropdown-item" href="#">MEMBERS BGP ANALYSIS</a>
-                      <a class="dropdown-item" href="#">INDIRECTLY CONNECTED ASNS</a>
-                      <a class="dropdown-item" href="#">ALL ASNS IN NIGERIA</a>
-                      <a class="dropdown-item" href="#">ASNS IN NIGERIA BUT NOT PEERING DIRCTLY</a>
-                      <a class="dropdown-item" href="#">ASNS IN NIGRTIA BUT NOT AT IXPN</a>
-                      <a class="dropdown-item" href="#">ALL AFRINIC ASNS</a>
+                      <a class="dropdown-item" href="{% url 'list_peers' %}">List Members</a>
+                      <a class="dropdown-item" href="{% url 'list_switches' %}">List Switches</a>
+             
                     </div>
                   </li>
                   {% if is_noc %}
@@ -102,7 +100,7 @@
                 <li class="nav-item">
                     <a class="nav-link active" href="{% url 'account_change_password' %}">Change Password</a>
                 </li>
-              {% else %}
+            
               <ul class="navbar-nav ml-auto">
                 <li class="nav-item">
                   <a class="nav-link active" href="{% url 'account_login' %}">Login</a>
@@ -111,7 +109,6 @@
             </ul>
               
             </div>
-            {% endif %}
             </div>
           </nav>
     </div>

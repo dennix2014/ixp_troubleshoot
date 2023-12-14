@@ -1,0 +1,65 @@
+{% extends 'account/base.html' %}
+{% load crispy_forms_tags %}
+    
+{% block content %}
+    <div class="container">
+
+        <h3>Test Complete</h3><br>
+        <h3>See test report below</h3><br>
+    
+        <p>Name: {{ member }}</p>
+        <p>Ip address: {{ ip_address }}</p><hr><br>
+
+
+        {% if interface_status %}
+        <h3>{{ port_status }}</h3><br>
+        <p>Inteface: {{ interface_status.interface }}</p>
+        <p>Interface Description: {{ interface_status.description }}</p>
+        <p>Interface Bandwidth: {{ interface_status.bandwidth }}</p>
+        <p>Interface Type: {{ interface_status.interface_type }}</p>
+        <p>Interface Status: {{ interface_status.link_status }}</p><hr><br>
+        {% endif %}
+
+        {% if peer_ping_check %}
+        <h3>{{ peer_ping_status }}</h3><br>
+        <pre>{{ peer_ping_check.0 }}</pre><hr><br>
+        {% endif %}
+
+        {% if peering_policy_message %}
+        <p><strong>{{ peering_policy_message }}</strong></p><hr><br>
+        {% endif %}
+
+        {% if peer_bgp_check %}
+        <h3>{{ peer_bgp_check_status }}</h3><br>
+        <p>BGP Peer: {{ peer_bgp_check.0.peer }}</p>
+        <p>BGP State: {{ peer_bgp_check.0.bgp_state }}</p>
+        {% if  peer_bgp_check.0.last_error %}
+        <p>BGP Error Message: {{ peer_bgp_check.0.last_error }}</p>
+        {% else %}
+        <p>Advertised Routes: {{ peer_bgp_check.0.exported }}</p>
+        <p>Received Routes: {{ peer_bgp_check.0.imported }}</p>
+        {% endif %}
+        <p>BGP Last Status: {{ peer_bgp_check.0.since }}</p>
+        <p>BGP Peer IP: {{ peer_bgp_check.0.neighbor_ip }}</p>
+        <p>BGP Peer AS: {{ peer_bgp_check.0.asn }}</p><hr><br>
+        <p>{% endif %}
+
+        {% if check_ip_prefix %}
+        <h3>{{ check_ip_prefix_status }}</h3><br>
+        <p>{{ check_ip_prefix }}</p><hr><br>
+        {% endif %}
+
+        {% if other_peer_ping_check %}
+        <h3>{{ other_peer_ping_check_status }}</h3><br>
+        <pre>{{ other_peer_ping_check }}</pre><hr><br>
+        {% endif %}
+
+        {% if service_ping_check %}
+        <h3>{{ service_ping_check_status }}</h3><br>
+        <pre>{{ service_ping_check }}</pre><hr><br>
+        {% endif %}
+
+        
+
+    </div>
+{% endblock %}
