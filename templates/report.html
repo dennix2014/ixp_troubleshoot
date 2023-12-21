@@ -44,20 +44,47 @@
         <p>BGP Peer AS: {{ peer_bgp_check.0.asn }}</p><hr><br>
         <p>{% endif %}
 
-        {% if check_ip_prefix %}
-        <h3>{{ check_ip_prefix_status }}</h3><br>
-        <p>{{ check_ip_prefix }}</p><hr><br>
-        {% endif %}
+        
+
+
 
         {% if other_peer_ping_check %}
         <h3>{{ other_peer_ping_check_status }}</h3><br>
         <pre>{{ other_peer_ping_check }}</pre><hr><br>
         {% endif %}
 
+        {% if check_ip %}
+        <h3>{{ check_ip_prefix_status }}</h3><br>
+        <p>IP Prefix: {{ check_ip.ip_cidr }}</p>
+        <p>AS Path: {{ check_ip.as_path }}</p>
+        <p>Next Hop: {{ check_ip.next_hop }}</p>
+        <hr><br>
+        {% endif %}
+
         {% if service_ping_check %}
         <h3>{{ service_ping_check_status }}</h3><br>
         <pre>{{ service_ping_check }}</pre><hr><br>
         {% endif %}
+
+        {% if summary %}
+        <h3>Summary</h3>
+        <ul>
+            {% for item in summary %}
+                <li><pre>{{ item }}</pre></li>
+            {% endfor %}
+        </ul><hr><br>
+        {% endif %}
+
+        {% if recommendations %}
+        <h3>Recommendations</h3>
+        <ul>
+            {% for recommendation in recommendations %}
+                <li>{{ recommendation }}</li>
+            {% endfor %}
+        </ul><hr><br>
+        {% endif %}
+        
+
 
         
 

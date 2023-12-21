@@ -371,4 +371,46 @@ def check_prefix(ip_prefix):
 
 
 
+success_summary = [
+    '⁠Physical connection of reporting member: UP (OK)',
+    '⁠IP reachability of (ISP1) router: (OK)',
+    '⁠BGP peer status of reporting member: ESTABLISHED (OK)',
+    '⁠Is the network advertised through the IX: YES (OK) ',
+    '⁠Member hosting service: ISP_Name',
+    '⁠Is service IP reachable: YES (OK)'
+]
 
+recommedantions_success = [
+    'The test results shows that there is connectivity between the two ends and the service IP address is reachable via the  IX. Get further incident details from member including those listed below and escalate to network support engineer for further investigation.',
+    'Trace from within their network to the device they are having issues with.',
+    'When the issue started or noticed?',
+    'Is the issue experienced on a specific devices or group.',
+    'If it is on a specific device or group, what is common to the affected devices?',
+    'Does it affect specific application or all applications?',
+    'What application does it affect?'
+]
+
+
+
+router_reachability_failure = [
+    "The test result shows that the members switchport is UP but the peering router is not reachable. ",
+    "This could be as a result of an issue on the the transmission link between the router and the IX switch or an issue the router. Contact provide to confirm if router interface and also the transmission link."
+]
+
+bgp_peer_failure = [
+    "The member peering router is reachable but BGP peer is not established. ",
+    "Possible Issues:",
+    "Member does not peer with route server (Selective Peering)",
+    "Change in BGP configuration on Member's router.",
+    "ROUTE LIMIT EXCEEDED: Number of BGP prefixes advertised by member is higher than set threshold. Notify member to confirm the number of prefixes advertised.",
+    "MALFORMED AS_PATH: Member's router is not configured to receive IX transparent advertisement. Notify member to configure router to accept transparent routes. Member need to disable enforcement of first AS rule."
+]
+
+network_not_available = [
+    "The route for the network reported is not available in the IX routing table hence, this traffic is not expected to flow through the IX. Contact member to check trace route to confirm the traffic path."
+]
+
+service_unreachable = [
+    "The network is advertised by member(ISP_Name) but the specific node is not reachable.",
+    "This issue beyond the demarcation point of the IX. Escalate the incident to the member advertising the network for further investigation.",
+]

@@ -15,7 +15,13 @@ from core.utils import (resolve_domain,
                         connect_to_switch,
                         ping_peer,
                         check_bgp_status,
-                        check_prefix)
+                        check_prefix, 
+                        success_summary,
+                        recommedantions_success,
+                        router_reachability_failure,
+                        bgp_peer_failure,
+                        service_unreachable,
+                        network_not_available)
 
 
 error_msg = 'Correct errors indicated and try again'
@@ -70,7 +76,8 @@ def l3_reachability(request):
                 
 
                 interface_status_check = connect_to_switch(port=port, switch=switch_ip)
-                if interface_status_check.get('link_status') == 'connected':
+                link_status = interface_status_check.get('link_status')
+                if link_status == 'connected':
                     port_status = f'Interface for {peer_name} is connected!'
                     peer_ping_check = ping_peer(peer_ip)
                     
@@ -87,7 +94,8 @@ def l3_reachability(request):
                                     check_ip_prefix_status = f"{raw_ip_address} is available at the IX!"
                                     other_peer_ip = check_ip_prefix.get('next_hop')
                                     other_peer_ping_check = ping_peer(other_peer_ip)
-                                    print(check_ip_prefix)
+                                    
+                                    
 
                                     if not int(other_peer_ping_check[1]):
                                         other_peer_name = check_ip_prefix.get('peer_name')
@@ -113,7 +121,10 @@ def l3_reachability(request):
                                                             'other_peer_ping_check_status': other_peer_ping_check_status,
                                                             'check_ip_prefix_status': check_ip_prefix_status,
                                                             'peer_bgp_check_status': peer_bgp_check_status,
-                                                            'peer_ping_status': peer_ping_status
+                                                            'peer_ping_status': peer_ping_status,
+                                                            'summary': success_summary,
+                                                            'recommendations': recommedantions_success,
+                                                            'check_ip': check_ip_prefix
 
                                                         })
 
@@ -134,7 +145,8 @@ def l3_reachability(request):
                                                 'check_ip_prefix_status': check_ip_prefix_status,
                                                 'peer_bgp_check_status': peer_bgp_check_status,
                                                 'port_status': port_status,
-                                                'peer_ping_status': peer_ping_status
+                                                'peer_ping_status': peer_ping_status,
+                                                'summary': service_unreachable
                                             })
 
                                     else:
@@ -169,7 +181,8 @@ def l3_reachability(request):
                                         'check_ip_prefix': f'{raw_ip_address} not available at the IX',
                                         'peer_bgp_check_status': peer_bgp_check_status,
                                         'port_status': port_status,
-                                        'peer_ping_status': peer_ping_status
+                                        'peer_ping_status': peer_ping_status,
+                                        'summary': network_not_available
                                     })
                                         
 
@@ -185,7 +198,8 @@ def l3_reachability(request):
                                     'peer_bgp_check': peer_bgp_check,
                                     'peer_bgp_check_status': peer_bgp_check_status,
                                     'port_status': port_status,
-                                    'peer_ping_status': peer_ping_status
+                                    'peer_ping_status': peer_ping_status,
+                                    'summary': bgp_peer_failure
 
 
                                 }) 
@@ -214,18 +228,32 @@ def l3_reachability(request):
                                     'interface_status': interface_status_check,
                                     'peer_ping_check': peer_ping_check,
                                     'port_status': port_status,
-                                    'peer_ping_status': peer_ping_status
+                                    'peer_ping_status': peer_ping_status,
+                                    'summary': router_reachability_failure
                                 })                
                 
                 else:
                     port_status = f'Interface for {peer_name} is not connected!'
+                    if link_status == 'errdisabled':
+                        message = f'''{link_status} is usually caused by: 
+                        1. Port Security Violation: This is due to a new MAC address being noticed on the member switchport. \n
+                        Contact member to confirm any device change, update MAC address then shut and unshut the switchport.\n
+                        2.BPDU-Disable: This means switchport has received BPDU from the member devices. 
+                            It is an indicator of a layer 2 switching device is noticed on them member connection. 
+                            Contact member to check and remove any layer 2 switching devices on the IX connection.'''
+                    physical_conn_failure = [
+                                    'The test result shows that the IX switchport of this member is down with the following details.',
+                                    f'Port status is {link_status}',
+                                    f'{message}'
+                                ]
                     return render(
                                 request, 
                                 'report.html', {
                                     'member': member, 
                                     'ip_address': raw_ip_address,
                                     'interface_status': interface_status_check,
-                                    'port_status': port_status
+                                    'port_status': port_status,
+                                    'summary': physical_conn_failure
                                 })
 
             else:
